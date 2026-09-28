@@ -93,9 +93,9 @@ p {
     border-radius: 12px;
     background-color: #f4f3ff;
 }
-
-::before,
-::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
