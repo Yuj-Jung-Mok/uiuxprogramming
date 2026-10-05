@@ -92,9 +92,9 @@ p {
     display: grid;
 
     /* 들어갈수 있는 만큼 열을 만들고,
-    카드 너비는 최소 260xp부터 남은 공간까지 사용 */
+    카드 너비는 최소 268px부터 남은 공간까지 사용 */
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    
+
     gap: 24px;
 }
 
@@ -163,7 +163,7 @@ button:active {
     transform: translateY(1px);
 }
 
-/* 웹펭이지가 표시되는 가로 폭이 768px 이하일 때만 적용 */
+/* 웹페이지가 표시되는 가로 폭이 768px 이하일 때만 적용 */
 @media (max-width: 768px) {
     body {
         font-size: 16px;
@@ -219,7 +219,7 @@ button:active {
     }
 
     button {
-        /* 모바일에서도 버튼으이 누르는 영역이 너무 낮아지지 않게 */
+        /* 모바일에서도 버튼의 누르는 영역이 너무 낮아지지 않게 */
         min-height: 48px;
     }
 }
