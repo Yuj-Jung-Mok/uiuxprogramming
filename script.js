@@ -45,6 +45,20 @@ function handleSubscribe(event) {
 
 subscribeForm.addEventListener("submit", handleSubscribe);
 
+function handleEmailInput() {
+    if (!isSubscribed) {
+        return;
+    }
+
+    isSubscribed = false;
+    subscribeMessage.textContent = "이메일을 입력한 뒤 신청해주세요.";
+    subscribeMessage.classList.remove("is-success");
+    subscribeButton.textContent = "만화 소식 신청하기";
+    subscribeButton.disabled = false;
+}
+
+emailInput.addEventListener("input", handleEmailInput);
+
 const themeButton = document.querySelector("#theme-btn");
 const nicknameInput = document.querySelector("#nickname");
 const nicknameCount = document.querySelector("#nickname-cnt");
