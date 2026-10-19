@@ -357,6 +357,10 @@ body.dark .panel {
         width: 100%;
     }
 
+    .agree-row input {
+        width: auto;
+    }
+
     button {
         /* 모바일에서도 버튼의 누르는 영역이 너무 낮아지지 않게 */
         min-height: 48px;
