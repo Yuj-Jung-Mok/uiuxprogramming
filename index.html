@@ -43,20 +43,67 @@
 
         <section id="features">
             <h2>만화 보기</h2>
-            <ul class="features-list">
-                <li class="feature-card">
-                    <h3>편리한 조회 기능</h3>
-                    <p>어디서든 보고싶은 만화를 선택하여 조회합니다.</p>
-                </li>
-                <li class="feature-card">
-                    <h3>책갈피 기능</h3>
-                    <p>어디까지 봤는지 기억하지 않고 본 지점을 저장해줍니다.</p>
-                </li>
-                <li class="feature-card">
-                    <h3>즐겨찾기 기능</h3>
-                    <p>좋아하는 장르의 만화를 즐겨찾기하여 편하게 접근할 수 있습니다.</p>
-                </li>
-            </ul>
+            <div class="tabs" role="tablist" aria-label="기능 선택">
+                <button 
+                    id="tab-view" 
+                    class="tab is-active"
+                    type="button"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="feature-view"
+                    data-target="#feature-view">
+                    편리한 조회 기능
+                </button>
+                <button 
+                    id="tab-bookmark" 
+                    class="tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="feature-bookmark"
+                    data-target="#feature-bookmark">
+                    책갈피 기능
+                </button>
+                <button 
+                    id="tab-star" 
+                    class="tab"
+                    type="button"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="feature-star"
+                    data-target="#feature-star">
+                    즐겨찾기 기능
+                </button>
+            </div>
+
+            <div
+                id="feature-view"
+                class="panel is-active"
+                role="tabpanel"
+                aria-labelledby="tab-view">
+                <h3>편리한 조회 기능</h3>
+                <p>어디서든 보고싶은 만화를 선택하여 조회합니다.</p>
+            </div>
+
+            <div
+                id="feature-bookmark"
+                class="panel"
+                role="tabpanel"
+                aria-labelledby="tab-bookmark"
+                hidden>
+                <h3>책갈피 기능</h3>
+                <p>어디까지 봤는지 기억하지 않고 본 지점을 저장해줍니다.</p>
+            </div>
+
+            <div
+                id="feature-star"
+                class="panel"
+                role="tabpanel"
+                aria-labelledby="tab-star"
+                hidden>
+                <h3>즐겨찾기 기능</h3>
+                <p>좋아하는 장르의 만화를 즐겨찾기하여 편하게 접근할 수 있습니다.</p>
+            </div>
         </section>
 
         <section id="steps">
@@ -66,6 +113,38 @@
                 <li>보고 싶은 만화를 선택하여 감상합니다.</li>
                 <li>좋아하는 만화를 즐겨찾기하고, 보던 위치에서 이어봅니다.</li>
             </ol>
+        </section>
+
+        <section id="event-practice">
+            <h2>만화 읽기 설정</h2>
+            <div class="event-grid">
+                <article class="event-card">
+                    <h3>화면 테마</h3>
+                    <button id="theme-btn" type="button">다크 테마로 바꾸기</button>
+                </article>
+
+                <article class="event-card">
+                    <h3>만화 정보</h3>
+                    <label for="nickname">만화 이름</label>
+                    <input type="text" id="nickname" maxlength="10">
+                    <p id="nickname-cnt" aria-live="polite">0 / 10</p>
+                </article>
+
+                <article class="event-card">
+                    <h3>만화 정보 활용 동의</h3>
+                    <label class="agree-row">
+                        <input type="checkbox" id="agree-chk">
+                        만화 정보 수집 활용에 동의합니다.
+                    </label>
+                    <p id="agree-msg" aria-live="polite">
+                        동의 후 만화를 볼 수 있습니다.
+                    </p>
+                    <button id="start-btn" type="button" disabled>
+                        만화 보기
+                    </button>
+                </article>
+
+            </div>
         </section>
 
         <section id="subscribe" class="subscribe-card">
