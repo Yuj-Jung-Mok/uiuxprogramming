@@ -147,6 +147,69 @@
             </div>
         </section>
 
+        <dialog id="reading-dialog" aria-labelledby="reading-title" aria-describedby="reading-description">
+            <h2 id="reading-title">만화 정보 활용 안내</h2>
+            <p id="reading-description">만화 정보 활용에 동의하면 설정한 만화 제목으로 만화 보기를 시작할 수 있습니다. 지금은 안내만 표시되며 만화 보기는 시작되지 않습니다.</p>
+            <div class="dialog-actions">
+                <button id="reading-cancel" type="button">돌아가기</button>
+                <button id="reading-confirm" type="button">동의하고 만화 보기</button>
+            </div>
+        </dialog>
+
+        <section id="reading-flow" class="reading-flow" hidden>
+            <h2>만화 보기 설정</h2>
+            <p class="progress" aria-label="설정 진행 단계">
+                <span class="progress__item">1 · 정보</span>
+                <span class="progress__item">2 · 조건</span>
+                <span class="progress__item">3 · 확인</span>
+            </p>
+
+            <section class="step" data-step="1" hidden>
+                <h3>만화 정보를 입력해 주세요.</h3>
+                <label for="comic-title">만화 제목</label>
+                <input id="comic-title" type="text" placeholder="예: 내가 좋아하는 만화" aria-describedby="title-error">
+                <p id="title-error" class="error-message" aria-live="polite"></p>
+                <button id="title-next" type="button">읽기 조건 선택하기</button>
+            </section>
+
+            <section class="step" data-step="2" hidden>
+                <h3>읽기 조건을 선택해 주세요.</h3>
+                <label for="chapter-range">보여줄 회차 수</label>
+                <input id="chapter-range" type="range" min="1" max="10" step="1" value="3">
+                <output id="chapter-value" for="chapter-range">3화</output>
+                <label><input type="checkbox" id="bookmark-option">책갈피 기능 사용</label>
+                <fieldset id="genre-options" hidden>
+                    <legend>즐겨찾기 장르</legend>
+                    <label><input type="checkbox" id="genre-action">액션</label>
+                    <label><input type="checkbox" id="genre-daily">일상</label>
+                    <label><input type="checkbox" id="genre-fantasy">판타지</label>
+                </fieldset>
+                <div class="step-actions">
+                    <button id="option-pre" type="button">이전</button>
+                    <button id="option-next" type="button">내용 확인하기</button>
+                </div>
+            </section>
+
+            <section class="step" data-step="3" hidden>
+                <h3>입력한 내용을 확인해 주세요.</h3>
+                <div class="summary-list">
+                    <div><span>만화 제목</span><strong id="summary-title"></strong></div>
+                    <div><span>보여줄 회차 수</span><strong id="summary-chapter"></strong></div>
+                    <div><span>책갈피 기능</span><strong id="summary-bookmark"></strong></div>
+                    <div><span>즐겨찾기 장르</span><strong id="summary-genre"></strong></div>                </div>
+                <div class="step-actions">
+                    <button id="summary-prev" type="button">수정하기</button>
+                    <button id="finish-button" type="button">설정 완료하기</button>
+                </div>
+            </section>
+
+            <section class="step complete-step" data-step="4" hidden>
+                <h3>만화 보기 설정이 완료되었습니다.</h3>
+                <p>설정한 내용을 확인했습니다. 필요하면 다시 설정할 수 있습니다.</p>
+                <button id="restart-button" type="button">다시 설정하기</button>
+            </section>
+        </section>
+
         <section id="subscribe" class="subscribe-card">
             <h2>만화 소식 받기</h2>
             <form id="subscribe-form">
