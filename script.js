@@ -276,6 +276,246 @@ restartButton.addEventListener("click", () => {
     summaryBookmark.textContent = "";
     summaryGenre.textContent = "";
 
+    resetCollection();
+
     showStep(0);
 });
 
+
+// 중간고사 추가 기능: 내 장르 만화 모아보기와 즐겨찾기
+const completeMessage = document.querySelector("#complete-msg");
+const collectionOpen = document.querySelector("#collection-open");
+const collectionBack = document.querySelector("#collection-back");
+const genreScopeMessage = document.querySelector("#genre-scope-msg");
+const genrePickButton = document.querySelector("#genre-pick-btn");
+const comicSearchForm = document.querySelector("#comic-search-form");
+const comicSearch = document.querySelector("#comic-search");
+const resultMessage = document.querySelector("#result-msg");
+const noResult = document.querySelector("#no-result");
+const noResultMessage = document.querySelector("#no-result-msg");
+const searchClear = document.querySelector("#search-clear");
+const searchAll = document.querySelector("#search-all");
+const comicCards = document.querySelectorAll(".comic-card");
+const favoriteButtons = document.querySelectorAll(".favorite-btn");
+const favoriteCount = document.querySelector("#favorite-count");
+const favoriteList = document.querySelector("#favorite-list");
+const favoriteMessage = document.querySelector("#favorite-msg");
+const removeDialog = document.querySelector("#remove-dialog");
+const removeMessage = document.querySelector("#remove-msg");
+const removeCancel = document.querySelector("#remove-cancel");
+const removeConfirm = document.querySelector("#remove-confirm");
+const maxFavorites = 3;
+const defaultCompleteText = completeMessage.textContent;
+let showAllGenres = false;
+let removeTarget = null;
+
+// 7주차 2단계에서 책갈피와 함께 고른 장르 이름을 " · "로 이어 붙인다.
+function getMyGenreText() {
+    let text = "";
+
+    if (!formData.bookmark) return text;
+
+    genreOptions.querySelectorAll("input:checked").forEach((input) => {
+        text += (text ? " · " : "") + input.value;
+    });
+
+    return text;
+}
+
+function updateGenreScope() {
+    const myGenres = getMyGenreText();
+
+    genrePickButton.hidden = myGenres !== "";
+    genreScopeMessage.classList.toggle("is-notice", myGenres === "");
+
+    if (!myGenres) {
+        showAllGenres = true;
+        genreScopeMessage.textContent = "선택한 즐겨찾기 장르가 없어 전체 장르의 만화를 보여 줍니다. 장르를 고르면 내 장르만 모아 볼 수 있습니다.";
+        return;
+    }
+
+    genreScopeMessage.textContent = showAllGenres
+        ? "전체 장르에서 찾은 결과입니다. 검색어를 지우면 내 장르로 돌아갑니다."
+        : "선택한 장르(" + myGenres + ")의 만화를 보여 줍니다.";
+}
+
+// 새로 검색하거나 검색어를 지우면 다시 내 장르 범위에서 보여 준다.
+function showMyGenres() {
+    showAllGenres = false;
+    updateGenreScope();
+    return updateComicList();
+}
+
+function updateComicList() {
+    const keyword = comicSearch.value.trim();
+    let count = 0;
+
+    comicCards.forEach((card) => {
+        const genreInput = document.querySelector("#genre-" + card.dataset.genre);
+        const inGenre = showAllGenres || genreInput.checked;
+        const matched = card.dataset.title.includes(keyword);
+
+        card.hidden = !(inGenre && matched);
+
+        if (!card.hidden) {
+            count += 1;
+        }
+    });
+
+    noResult.hidden = count > 0;
+
+    if (count === 0) {
+        resultMessage.textContent = "";
+        noResultMessage.textContent = showAllGenres
+            ? "'" + keyword + "'에 맞는 만화가 없습니다. 검색어를 바꾸거나 지워 주세요."
+            : "내 장르에는 '" + keyword + "'에 맞는 만화가 없습니다. 검색어를 지우거나 전체 장르에서 찾아 보세요.";
+        searchAll.hidden = showAllGenres;
+        return;
+    }
+
+    resultMessage.textContent = keyword
+        ? "'" + keyword + "' 검색 결과 " + count + "개 작품"
+        : (showAllGenres ? "전체 장르" : "내 장르") + " 작품 " + count + "개";
+
+    return count;
+}
+
+function updateFavoriteSummary() {
+    let names = "";
+    let count = 0;
+
+    comicCards.forEach((card) => {
+        if (!card.classList.contains("is-favorite")) return;
+
+        count += 1;
+        names += (names ? ", " : "") + card.dataset.title;
+    });
+
+    favoriteCount.textContent = count + " / " + maxFavorites + "개";
+    favoriteList.textContent = names || "아직 담은 만화가 없습니다. 마음에 드는 작품의 '즐겨찾기 담기'를 눌러 보세요.";
+
+    return count;
+}
+
+function setFavorite(card, isFavorite) {
+    const button = card.querySelector(".favorite-btn");
+
+    card.classList.toggle("is-favorite", isFavorite);
+    button.textContent = isFavorite ? "즐겨찾기 빼기" : "즐겨찾기 담기";
+    button.setAttribute("aria-pressed", String(isFavorite));
+    updateFavoriteSummary();
+}
+
+function showFavoriteMessage(text, state) {
+    favoriteMessage.textContent = text;
+    favoriteMessage.classList.toggle("is-success", state === "success");
+    favoriteMessage.classList.toggle("is-warning", state === "warning");
+}
+
+function resetCollection() {
+    showAllGenres = false;
+    removeTarget = null;
+    comicSearch.value = "";
+    noResult.hidden = true;
+    resultMessage.textContent = "";
+    comicCards.forEach((card) => setFavorite(card, false));
+    showFavoriteMessage("", "");
+    completeMessage.textContent = defaultCompleteText;
+}
+
+// 모아보기는 항상 내 장르부터 보여 주고, 검색어와 즐겨찾기는 그대로 유지한다.
+collectionOpen.addEventListener("click", () => {
+    showMyGenres();
+    updateFavoriteSummary();
+    showStep(4);
+    comicSearch.focus();
+});
+
+// 값은 그대로 둔 채 7주차 2단계(읽기 조건)로 돌아가 장르를 고르게 한다.
+genrePickButton.addEventListener("click", () => {
+    showStep(1);
+    bookmarkOption.focus();
+});
+
+function handleComicSearch(event) {
+    event.preventDefault();
+
+    const count = showMyGenres();
+
+    // 검색어 없이 검색하면 목록은 그대로 보여 주고, 무엇을 입력할지 안내한다.
+    if (comicSearch.value.trim() === "") {
+        resultMessage.textContent = "검색어가 비어 있어 작품 " + count + "개를 모두 보여 줍니다. 찾을 작품 이름을 입력해 주세요.";
+        comicSearch.focus();
+    }
+}
+
+comicSearchForm.addEventListener("submit", handleComicSearch);
+
+searchClear.addEventListener("click", () => {
+    comicSearch.value = "";
+    showMyGenres();
+    comicSearch.focus();
+});
+
+searchAll.addEventListener("click", () => {
+    showAllGenres = true;
+    updateGenreScope();
+    updateComicList();
+});
+
+function handleFavoriteClick(event) {
+    const card = document.querySelector(event.currentTarget.dataset.target);
+    const title = card.dataset.title;
+
+    if (card.classList.contains("is-favorite")) {
+        removeTarget = card;
+        removeMessage.textContent = "'" + title + "'을(를) 즐겨찾기에서 빼면 내 즐겨찾기 목록에서 사라집니다.";
+        removeDialog.showModal();
+        return;
+    }
+
+    if (updateFavoriteSummary() >= maxFavorites) {
+        showFavoriteMessage("즐겨찾기는 최대 " + maxFavorites + "개까지 담을 수 있습니다. 다른 작품을 빼고 다시 담아 주세요.", "warning");
+        return;
+    }
+
+    setFavorite(card, true);
+    showFavoriteMessage("'" + title + "'을(를) 즐겨찾기에 담았습니다.", "success");
+}
+
+favoriteButtons.forEach((button) => {
+    button.addEventListener("click", handleFavoriteClick);
+});
+
+function keepFavorite() {
+    if (!removeTarget) return;
+
+    showFavoriteMessage("'" + removeTarget.dataset.title + "'을(를) 즐겨찾기에 그대로 두었습니다.", "");
+    removeTarget.querySelector(".favorite-btn").focus();
+    removeTarget = null;
+}
+
+removeCancel.addEventListener("click", () => {
+    removeDialog.close();
+    keepFavorite();
+});
+
+removeDialog.addEventListener("cancel", keepFavorite);
+
+removeConfirm.addEventListener("click", () => {
+    removeDialog.close();
+    setFavorite(removeTarget, false);
+    showFavoriteMessage("'" + removeTarget.dataset.title + "'을(를) 즐겨찾기에서 뺐습니다.", "");
+    removeTarget.querySelector(".favorite-btn").focus();
+    removeTarget = null;
+});
+
+collectionBack.addEventListener("click", () => {
+    const count = updateFavoriteSummary();
+
+    completeMessage.textContent = count > 0
+        ? "즐겨찾기에 " + count + "개 작품을 담았습니다. 더 둘러보거나 다시 설정할 수 있습니다."
+        : "아직 즐겨찾기에 담은 작품이 없습니다. 내 장르 만화를 다시 둘러볼 수 있습니다.";
+    showStep(3);
+    collectionOpen.focus();
+});

@@ -180,9 +180,9 @@
                 <label><input type="checkbox" id="bookmark-option">책갈피 기능 사용</label>
                 <fieldset id="genre-options" hidden>
                     <legend>즐겨찾기 장르</legend>
-                    <label><input type="checkbox" id="genre-action">액션</label>
-                    <label><input type="checkbox" id="genre-daily">일상</label>
-                    <label><input type="checkbox" id="genre-fantasy">판타지</label>
+                    <label><input type="checkbox" id="genre-action" value="액션">액션</label>
+                    <label><input type="checkbox" id="genre-daily" value="일상">일상</label>
+                    <label><input type="checkbox" id="genre-fantasy" value="판타지">판타지</label>
                 </fieldset>
                 <div class="step-actions">
                     <button id="option-pre" type="button">이전</button>
@@ -205,10 +205,97 @@
 
             <section class="step complete-step" data-step="4" hidden>
                 <h3>만화 보기 설정이 완료되었습니다.</h3>
-                <p>설정한 내용을 확인했습니다. 필요하면 다시 설정할 수 있습니다.</p>
-                <button id="restart-button" type="button">다시 설정하기</button>
+                <p id="complete-msg" aria-live="polite">설정한 내용을 확인했습니다. 필요하면 다시 설정할 수 있습니다.</p>
+                <div class="step-actions">
+                    <button id="restart-button" type="button">다시 설정하기</button>
+                    <button id="collection-open" type="button">내 장르 만화 보러 가기</button>
+                </div>
+            </section>
+
+            <!-- 중간고사 추가 기능: 선택한 장르의 만화를 모아 보고 즐겨찾기에 담기 -->
+            <section class="step collection-step" data-step="5" hidden>
+                <h3>내 장르 만화 모아보기</h3>
+
+                <div class="genre-scope">
+                    <p id="genre-scope-msg" aria-live="polite"></p>
+                    <button id="genre-pick-btn" type="button" hidden>장르 고르러 가기</button>
+                </div>
+
+                <form id="comic-search-form">
+                    <label for="comic-search">작품 이름 검색</label>
+                    <input id="comic-search" type="text" placeholder="예: 마법" aria-describedby="result-msg">
+                    <button id="comic-search-btn" type="submit">검색하기</button>
+                </form>
+
+                <p id="result-msg" class="result-msg" aria-live="polite"></p>
+
+                <div id="no-result" class="no-result" hidden>
+                    <p id="no-result-msg"></p>
+                    <div class="step-actions">
+                        <button id="search-clear" type="button">검색어 지우기</button>
+                        <button id="search-all" type="button">전체 장르에서 찾기</button>
+                    </div>
+                </div>
+
+                <ul class="comic-list">
+                    <li id="comic-1" class="comic-card" data-genre="action" data-title="불꽃 검객">
+                        <span class="comic-genre">액션</span>
+                        <h4>불꽃 검객</h4>
+                        <p>전체 120화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-1">즐겨찾기 담기</button>
+                    </li>
+                    <li id="comic-2" class="comic-card" data-genre="action" data-title="강철 주먹">
+                        <span class="comic-genre">액션</span>
+                        <h4>강철 주먹</h4>
+                        <p>전체 86화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-2">즐겨찾기 담기</button>
+                    </li>
+                    <li id="comic-3" class="comic-card" data-genre="daily" data-title="우리 동네 빵집">
+                        <span class="comic-genre">일상</span>
+                        <h4>우리 동네 빵집</h4>
+                        <p>전체 72화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-3">즐겨찾기 담기</button>
+                    </li>
+                    <li id="comic-4" class="comic-card" data-genre="daily" data-title="고양이와 자취생">
+                        <span class="comic-genre">일상</span>
+                        <h4>고양이와 자취생</h4>
+                        <p>전체 40화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-4">즐겨찾기 담기</button>
+                    </li>
+                    <li id="comic-5" class="comic-card" data-genre="fantasy" data-title="용의 계약">
+                        <span class="comic-genre">판타지</span>
+                        <h4>용의 계약</h4>
+                        <p>전체 150화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-5">즐겨찾기 담기</button>
+                    </li>
+                    <li id="comic-6" class="comic-card" data-genre="fantasy" data-title="마법학교 신입생">
+                        <span class="comic-genre">판타지</span>
+                        <h4>마법학교 신입생</h4>
+                        <p>전체 98화</p>
+                        <button class="favorite-btn" type="button" data-target="#comic-6">즐겨찾기 담기</button>
+                    </li>
+                </ul>
+
+                <div class="favorite-box">
+                    <h4>내 즐겨찾기 <span id="favorite-count">0 / 3개</span></h4>
+                    <p id="favorite-list">아직 담은 만화가 없습니다. 마음에 드는 작품의 '즐겨찾기 담기'를 눌러 보세요.</p>
+                    <p id="favorite-msg" aria-live="polite"></p>
+                </div>
+
+                <div class="step-actions">
+                    <button id="collection-back" type="button">설정 완료 화면으로</button>
+                </div>
             </section>
         </section>
+
+        <dialog id="remove-dialog" aria-labelledby="remove-title" aria-describedby="remove-msg">
+            <h2 id="remove-title">즐겨찾기에서 뺄까요?</h2>
+            <p id="remove-msg"></p>
+            <div class="dialog-actions">
+                <button id="remove-cancel" type="button">그대로 두기</button>
+                <button id="remove-confirm" type="button">빼기</button>
+            </div>
+        </dialog>
 
         <section id="subscribe" class="subscribe-card">
             <h2>만화 소식 받기</h2>
