@@ -135,15 +135,20 @@ tabs.forEach((tab) => {
 });
 
 const readingFlow = document.querySelector("#reading-flow");
+const readingForm = document.querySelector("#reading-form");
 const flowSteps = readingFlow.querySelectorAll(".step");
 const progressItems = readingFlow.querySelectorAll(".progress__item");
 const titleInput = document.querySelector("#comic-title");
 const titleError = document.querySelector("#title-error");
+const titleField = document.querySelector("#title-field");
+const titleHelp = document.querySelector("#title-help");
+const titleCount = document.querySelector("#title-count");
 const titleNext = document.querySelector("#title-next");
 const chapterRange = document.querySelector("#chapter-range");
 const chapterValue = document.querySelector("#chapter-value");
 const bookmarkOption = document.querySelector("#bookmark-option");
 const genreOptions = document.querySelector("#genre-options");
+const genreInputs = document.querySelectorAll('input[name="genre"]');
 const optionPrev = document.querySelector("#option-pre");
 const optionNext = document.querySelector("#option-next");
 const summaryTitle = document.querySelector("#summary-title");
@@ -152,6 +157,8 @@ const summaryBookmark = document.querySelector("#summary-bookmark");
 const summaryGenre = document.querySelector("#summary-genre");
 const summaryPrev = document.querySelector("#summary-prev");
 const finishButton = document.querySelector("#finish-button");
+const submitStatus = document.querySelector("#submit-status");
+let isSubmitting = false;
 const restartButton = document.querySelector("#restart-button");
 const formData = {
     title: "",
@@ -202,21 +209,58 @@ readingConfirm.addEventListener("click", () => {
     titleInput.focus();
 });
 
-function validateTitle() {
-    const value = titleInput.value.trim();
+function updateTitleExperience() {
+    const length = titleInput.value.length;
+    const valid = titleInput.value.trim().length >= 2;
+    const hasError = titleInput.getAttribute("aria-invalid") === "true";
 
-    if (!value) {
+    titleCount.textContent = length + " / 60자";
+    titleField.classList.toggle("has-error", hasError);
+    titleField.classList.toggle("is-valid", valid && !hasError);
+    titleHelp.textContent = hasError
+        ? "제목 입력 조건을 다시 확인해 주세요."
+        : valid
+            ? "입력 조건을 충족했습니다."
+            : "2자 이상 60자 이하로 입력해 주세요.";
+}
+
+function validateTitle() {
+    const title = titleInput.value.trim();
+
+    if (!title) {
         titleError.textContent = "만화 제목을 입력해 주세요.";
+        titleInput.setAttribute("aria-invalid", "true");
         titleInput.classList.add("has-error");
+        updateTitleExperience();
+        titleInput.focus();
+        return false;
+    }
+
+    if (title.length < 2) {
+        titleError.textContent = "만화 제목을 2자 이상 입력해 주세요.";
+        titleInput.setAttribute("aria-invalid", "true");
+        titleInput.classList.add("has-error");
+        updateTitleExperience();
         titleInput.focus();
         return false;
     }
 
     titleError.textContent = "";
+    titleInput.removeAttribute("aria-invalid");
     titleInput.classList.remove("has-error");
-    formData.title = value;
+    formData.title = title;
+    updateTitleExperience();
     return true;
 }
+
+titleInput.addEventListener("input", () => {
+    if (titleInput.getAttribute("aria-invalid") === "true") {
+        validateTitle();
+    } else {
+        updateTitleExperience();
+    }
+});
+updateTitleExperience();
 
 titleNext.addEventListener("click", () => {
     if (!validateTitle()) return;
@@ -228,9 +272,18 @@ chapterRange.addEventListener("input", () => {
     chapterValue.value = chapterRange.value + "화";
 });
 
-bookmarkOption.addEventListener("change", () => {
-    genreOptions.hidden = !bookmarkOption.checked;
-});
+function syncGenreFields() {
+    const open = bookmarkOption.checked;
+
+    bookmarkOption.setAttribute("aria-expanded", String(open));
+    genreOptions.hidden = !open;
+    genreInputs.forEach((input) => {
+        input.disabled = !open;
+    });
+}
+
+bookmarkOption.addEventListener("change", syncGenreFields);
+syncGenreFields();
 
 optionPrev.addEventListener("click", () => showStep(0));
 
@@ -251,9 +304,90 @@ optionNext.addEventListener("click", () => {
 
 summaryPrev.addEventListener("click", () => showStep(1));
 
-finishButton.addEventListener("click", () => showStep(3));
+// 9주차: 완료 버튼의 중복 실행을 막고 저장 상태를 보여 줍니다.
+function setSubmitState(state, message) {
+    isSubmitting = state === "loading";
+    readingForm.setAttribute("aria-busy", String(isSubmitting));
+    readingFlow.setAttribute("aria-busy", String(isSubmitting));
+    summaryPrev.disabled = isSubmitting;
+    finishButton.disabled = isSubmitting;
+    finishButton.textContent = isSubmitting ? "설정을 저장하는 중…" : "설정 완료하기";
+    submitStatus.textContent = message;
+    submitStatus.classList.toggle("is-success", state === "success");
+    submitStatus.classList.toggle("has-error", state === "error");
+}
+
+// 기존 만화 보기 설정을 브라우저 저장소에 보관합니다.
+function saveReadingSettings() {
+    const settings = {
+        title: formData.title,
+        chapters: formData.chapters,
+        bookmark: formData.bookmark,
+        genres: formData.bookmark
+            ? [...genreOptions.querySelectorAll('input[name="genre"]:checked')].map((input) => input.value)
+            : [],
+        savedAt: new Date().toISOString()
+    };
+
+    try {
+        localStorage.setItem("comicReadingSettings", JSON.stringify(settings));
+        return true;
+    } catch (error) {
+        console.error("만화 보기 설정을 저장하지 못했습니다.", error);
+        return false;
+    }
+}
+
+// 9주차: 단계 이동과 마지막 저장을 하나의 form submit 경로로 처리합니다.
+readingForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    const currentStep = [...flowSteps].findIndex((step) => !step.hidden);
+
+    // 1단계에서 Enter를 누른 경우에도 다음 버튼과 같은 검증을 사용합니다.
+    if (currentStep === 0) {
+        titleNext.click();
+        return;
+    }
+
+    // 2단계에서 Enter를 누른 경우에는 현재 선택 내용을 확인 단계로 보냅니다.
+    if (currentStep === 1) {
+        optionNext.click();
+        return;
+    }
+
+    if (currentStep !== 2) return;
+
+    if (!validateTitle()) {
+        showStep(0);
+        titleInput.focus();
+        return;
+    }
+
+    // 이전 단계에서 돌아오지 않고 Enter로 제출해도 최신 값으로 저장합니다.
+    formData.chapters = chapterRange.value;
+    formData.bookmark = bookmarkOption.checked;
+    formData.genreCount = formData.bookmark
+        ? String(genreOptions.querySelectorAll('input[name="genre"]:checked').length)
+        : "0";
+
+    setSubmitState("loading", "만화 보기 설정을 저장하고 있습니다.");
+    window.setTimeout(() => {
+        if (!saveReadingSettings()) {
+            setSubmitState("error", "저장하지 못했습니다. 입력 내용은 그대로 두었습니다. 다시 시도해 주세요.");
+            finishButton.focus();
+            return;
+        }
+
+        setSubmitState("success", "만화 보기 설정 저장이 완료되었습니다.");
+        completeMessage.textContent = "'" + formData.title + "' 만화 보기 설정을 저장했습니다. 내 장르 만화를 둘러보거나 다시 설정할 수 있습니다.";
+        showStep(3);
+    }, 600);
+});
 
 restartButton.addEventListener("click", () => {
+    readingForm.reset();
     formData.title = "";
     formData.chapters = "3";
     formData.bookmark = false;
@@ -261,15 +395,19 @@ restartButton.addEventListener("click", () => {
 
     titleInput.value = "";
     titleError.textContent = "";
+    titleInput.removeAttribute("aria-invalid");
     titleInput.classList.remove("has-error");
+    titleField.classList.remove("is-valid", "has-error");
+    updateTitleExperience();
+    setSubmitState("idle", "");
 
     chapterRange.value = "3";
     chapterValue.value = "3화";
     bookmarkOption.checked = false;
-    genreOptions.hidden = true;
     genreOptions.querySelectorAll("input").forEach((input) => {
         input.checked = false;
     });
+    syncGenreFields();
 
     summaryTitle.textContent = "";
     summaryChapter.textContent = "";

@@ -646,3 +646,195 @@ body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
     .genre-scope p {flex-basis: 100%;}
     #comic-search-form {margin-top: 16px;}
 }
+
+/* =========================================================
+   9주차 · 폼 UI와 입력 경험
+   기존 1~8주차 스타일은 위에 유지하고, 9주차 추가분만 기능별 정리
+   ========================================================= */
+
+/* 9주차 01. 입력 상태 공통 색상 (라이트/다크) */
+:root {
+    --form-danger: #b43147;
+    --form-success: #18734f;
+    --form-success-bg: #f2fbf6;
+    --form-muted: #59657d;
+}
+
+body.dark {
+    --form-danger: #ff9baa;
+    --form-success: #76dbaa;
+    --form-success-bg: #1c331c;
+    --form-muted: #b4bfd4;
+}
+
+/* 9주차 02. 만화 제목: 레이블, 안내, 글자 수, 오류, 정상 상태 */
+.reading-flow #title-field > label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.reading-flow #title-field .required {
+    margin-left: 4px;
+    color: var(--form-danger);
+    font-size: 13px;
+}
+
+.reading-flow #title-field input[type="text"] {
+    display: block;
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 15px;
+    border: 1px solid #b8b7c5;
+    border-radius: 10px;
+}
+
+.reading-flow #title-field input[type="text"]:focus {
+    outline: 3px solid #b9b5ff;
+    outline-offset: 2px;
+}
+
+.reading-flow .field-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: 6px;
+}
+
+.reading-flow .field-help,
+.reading-flow .field-count {
+    margin: 0;
+    color: var(--form-muted);
+    font-size: 12px;
+}
+
+.reading-flow .field-count {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.reading-flow .field-error {
+    min-height: 21px;
+    margin: 6px 0 0;
+    color: var(--form-danger);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.reading-flow .field-error:empty {
+    display: block;
+    visibility: hidden;
+}
+
+.reading-flow #title-field.is-valid input[type="text"] {
+    border-color: var(--form-success);
+    background-color: var(--form-success-bg);
+}
+
+.reading-flow #title-field.is-valid .field-count {
+    color: var(--form-success);
+    font-weight: 800;
+}
+
+.reading-flow #title-field.has-error input[type="text"],
+.reading-flow #title-field input[type="text"][aria-invalid="true"] {
+    border-color: var(--form-danger);
+}
+
+.reading-flow #title-field.has-error .field-count {
+    color: var(--form-danger);
+    font-weight: 800;
+}
+
+/* 9주차 03. 책갈피 사용 여부와 조건부 장르 입력 */
+.reading-flow .genre-field {
+    margin-top: 20px;
+}
+
+.reading-flow .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.reading-flow .check-row input[type="checkbox"] {
+    margin-top: 6px;
+}
+
+.reading-flow .check-row span {
+    display: grid;
+    gap: 2px;
+}
+
+.reading-flow .check-row small {
+    color: var(--form-muted);
+    font-size: 12px;
+}
+
+.reading-flow .genre-options {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border: 1px solid #deddea;
+    border-radius: 10px;
+}
+
+.reading-flow .inline-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+.reading-flow .inline-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+body.dark .reading-flow .genre-options {
+    border-color: #777384;
+}
+
+/* 9주차 04. 3단계 저장 상태 메시지 */
+.reading-flow .submit-status {
+    min-height: 24px;
+    margin: 14px 0 0;
+    color: var(--form-muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.reading-flow .submit-status.is-success {
+    color: var(--form-success);
+}
+
+.reading-flow .submit-status.has-error {
+    color: var(--form-danger);
+}
+
+/* 9주차 05. 다단계 입력 폼 - 기존 이메일/검색 폼 정렬은 유지 */
+.reading-flow #reading-form {
+    display: block;
+}
+
+.reading-flow #reading-form .step {
+    margin-top: 0;
+}
+
+body.dark .reading-flow .field-help,
+body.dark .reading-flow .field-count,
+body.dark .reading-flow .check-row small,
+body.dark .reading-flow .submit-status {
+    color: #ddd9e9;
+}
+
+body.dark .reading-flow .submit-status.is-success {
+    color: var(--form-success);
+}
+
+body.dark .reading-flow .submit-status.has-error {
+    color: var(--form-danger);
+}
