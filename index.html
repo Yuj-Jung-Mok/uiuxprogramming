@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
     <!-- 
@@ -18,16 +18,20 @@
         정보 순서 : 서비스 소개 -> 주요 기능 -> 이용 방법 -> 만화 소식 신청
     -->
 
-    <header>
-        <h1>만화 보여주는 서비스</h1>
-        <p>만화를 쉽고 간편하게 볼 수 있게 해줍니다.</p>
-
-        <nav>
-            <a href="#about">서비스 소개</a>
-            <a href="#features">만화 보기</a>
-            <a href="#steps">이용 방법</a>
-            <a href="#subscribe">만화 소식 받기</a>
-        </nav>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="#about" aria-label="만화 보여주는 서비스 홈">만화책방</a>
+            <button id="menu-toggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">메뉴 열기</button>
+            <nav id="main-nav" class="main-nav" aria-label="주요 메뉴">
+                <ul>
+                    <li><a href="#about">서비스 소개</a></li>
+                    <li><a href="#features">만화 보기</a></li>
+                    <li><a href="#steps">이용 방법</a></li>
+                    <li><a href="#subscribe">만화 소식 받기</a></li>
+                </ul>
+            </nav>
+            <button id="theme-btn" class="theme-button" type="button" aria-pressed="false">다크 모드</button>
+        </div>
     </header>
     
     <main>
@@ -120,7 +124,7 @@
             <div class="event-grid">
                 <article class="event-card">
                     <h3>화면 테마</h3>
-                    <button id="theme-btn" type="button">다크 테마로 바꾸기</button>
+                    <p>화면 테마를 바꾸어 편안하게 만화를 읽을 수 있습니다.</p>
                 </article>
 
                 <article class="event-card">
@@ -250,6 +254,14 @@
                     <button id="comic-search-btn" type="submit">검색하기</button>
                 </form>
 
+                <div class="genre-filters" role="group" aria-label="만화 장르 필터">
+                    <button class="genre-filter" type="button" data-genre-filter="mine" aria-pressed="false">내 장르</button>
+                    <button class="genre-filter is-active" type="button" data-genre-filter="all" aria-pressed="true">전체</button>
+                    <button class="genre-filter" type="button" data-genre-filter="action" aria-pressed="false">액션</button>
+                    <button class="genre-filter" type="button" data-genre-filter="daily" aria-pressed="false">일상</button>
+                    <button class="genre-filter" type="button" data-genre-filter="fantasy" aria-pressed="false">판타지</button>
+                </div>
+
                 <p id="result-msg" class="result-msg" aria-live="polite"></p>
 
                 <div id="no-result" class="no-result" hidden>
@@ -338,6 +350,6 @@
         <small>ⓒ 2026 만화 보기 서비스</small>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=10"></script>
 </body>
 </html>

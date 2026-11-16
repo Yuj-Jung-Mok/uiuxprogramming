@@ -68,11 +68,60 @@ const startButton = document.querySelector("#start-btn");
 
 function handleThemeClick() {
     const isDark = document.body.classList.toggle("dark");
+    themeButton.setAttribute("aria-pressed", String(isDark));
     
     themeButton.textContent = isDark ? "라이트 테마로 바꾸기" : "다크 테마로 바꾸기";
 }
 
 themeButton.addEventListener("click", handleThemeClick);
+
+const navLinks = document.querySelectorAll(".main-nav a");
+
+function updateCurrentNav() {
+    const currentHash = window.location.hash;
+
+    navLinks.forEach((link, index) => {
+        const isCurrent = currentHash
+            ? link.getAttribute("href") === currentHash
+            : index === 0;
+
+        link.classList.toggle("is-current", isCurrent);
+
+        if (isCurrent) {
+            link.setAttribute("aria-current", "page");
+        } else {
+            link.removeAttribute("aria-current");
+        }
+    });
+}
+
+window.addEventListener("hashchange", updateCurrentNav);
+updateCurrentNav();
+
+const menuToggle = document.querySelector("#menu-toggle");
+const mainNav = document.querySelector("#main-nav");
+
+menuToggle.addEventListener("click", () => {
+    const isOpen = mainNav.classList.toggle("is-open");
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+    menuToggle.textContent = isOpen ? "메뉴 닫기" : "메뉴 열기";
+});
+
+navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+        mainNav.classList.remove("is-open");
+        menuToggle.textContent = "메뉴 열기";
+        menuToggle.setAttribute("aria-expanded", "false");
+    });
+});
+
+window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+        mainNav.classList.remove("is-open");
+        menuToggle.textContent = "메뉴 열기";
+        menuToggle.setAttribute("aria-expanded", "false");
+    }
+});
 
 function handleNicknameInput() {
     const maxLength = nicknameInput.maxLength;
@@ -434,6 +483,8 @@ const noResultMessage = document.querySelector("#no-result-msg");
 const searchClear = document.querySelector("#search-clear");
 const searchAll = document.querySelector("#search-all");
 const comicCards = document.querySelectorAll(".comic-card");
+const genreFilterButtons = document.querySelectorAll(".genre-filter");
+let currentGenreFilter = "all";
 const favoriteButtons = document.querySelectorAll(".favorite-btn");
 const favoriteCount = document.querySelector("#favorite-count");
 const favoriteList = document.querySelector("#favorite-list");
@@ -444,7 +495,6 @@ const removeCancel = document.querySelector("#remove-cancel");
 const removeConfirm = document.querySelector("#remove-confirm");
 const maxFavorites = 3;
 const defaultCompleteText = completeMessage.textContent;
-let showAllGenres = false;
 let removeTarget = null;
 
 // 7주차 2단계에서 책갈피와 함께 고른 장르 이름을 " · "로 이어 붙인다.
@@ -462,38 +512,47 @@ function getMyGenreText() {
 
 function updateGenreScope() {
     const myGenres = getMyGenreText();
-
     genrePickButton.hidden = myGenres !== "";
     genreScopeMessage.classList.toggle("is-notice", myGenres === "");
 
-    if (!myGenres) {
-        showAllGenres = true;
-        genreScopeMessage.textContent = "선택한 즐겨찾기 장르가 없어 전체 장르의 만화를 보여 줍니다. 장르를 고르면 내 장르만 모아 볼 수 있습니다.";
-        return;
+    if (currentGenreFilter === "mine") {
+        genreScopeMessage.textContent = myGenres
+            ? "선택한 장르(" + myGenres + ")의 만화를 보여 줍니다."
+            : "선택한 장르가 없어 전체 작품을 보여 줍니다. 장르 고르기로 내 장르를 설정해 보세요.";
+    } else {
+        const button = document.querySelector('[data-genre-filter="' + currentGenreFilter + '"]');
+        genreScopeMessage.textContent = button.textContent + " 작품에서 검색합니다.";
     }
-
-    genreScopeMessage.textContent = showAllGenres
-        ? "전체 장르에서 찾은 결과입니다. 검색어를 지우면 내 장르로 돌아갑니다."
-        : "선택한 장르(" + myGenres + ")의 만화를 보여 줍니다.";
 }
 
-// 새로 검색하거나 검색어를 지우면 다시 내 장르 범위에서 보여 준다.
-function showMyGenres() {
-    showAllGenres = false;
+function selectGenreFilter(value) {
+    currentGenreFilter = value;
+    genreFilterButtons.forEach((button) => {
+        const selected = button.dataset.genreFilter === value;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+    });
     updateGenreScope();
+}
+
+function showMyGenres() {
     return updateComicList();
 }
 
 function updateComicList() {
     const keyword = comicSearch.value.trim();
     let count = 0;
+    const cards = document.querySelectorAll(".comic-card");
 
-    comicCards.forEach((card) => {
+    cards.forEach((card) => {
         const genreInput = document.querySelector("#genre-" + card.dataset.genre);
-        const inGenre = showAllGenres || genreInput.checked;
+        const inMyGenres = !getMyGenreText() || genreInput.checked;
+        const matchesFilter = currentGenreFilter === "all"
+            || (currentGenreFilter === "mine" && inMyGenres)
+            || card.dataset.genre === currentGenreFilter;
         const matched = card.dataset.title.includes(keyword);
 
-        card.hidden = !(inGenre && matched);
+        card.hidden = !(matchesFilter && matched);
 
         if (!card.hidden) {
             count += 1;
@@ -503,17 +562,27 @@ function updateComicList() {
     noResult.hidden = count > 0;
 
     if (count === 0) {
-        resultMessage.textContent = "";
-        noResultMessage.textContent = showAllGenres
-            ? "'" + keyword + "'에 맞는 만화가 없습니다. 검색어를 바꾸거나 지워 주세요."
-            : "내 장르에는 '" + keyword + "'에 맞는 만화가 없습니다. 검색어를 지우거나 전체 장르에서 찾아 보세요.";
-        searchAll.hidden = showAllGenres;
-        return;
+        resultMessage.textContent = "현재 표시 중인 작품 0개";
+        const selectedFilter = currentGenreFilter !== "all"
+            ? document.querySelector('[data-genre-filter="' + currentGenreFilter + '"]').textContent
+            : "전체 장르";
+        if (cards.length === 0) {
+            noResultMessage.textContent = "아직 등록된 만화가 없습니다. 만화가 추가되면 이곳에서 확인할 수 있습니다.";
+        } else {
+            noResultMessage.textContent = keyword
+                ? selectedFilter + "에서 '" + keyword + "'에 맞는 만화가 없습니다. 검색어나 필터를 바꿔 보세요."
+                : selectedFilter + "에 표시할 만화가 없습니다. 다른 장르를 선택해 보세요.";
+        }
+        searchAll.hidden = currentGenreFilter === "all" || cards.length === 0;
+        searchClear.hidden = cards.length === 0;
+        return 0;
     }
 
     resultMessage.textContent = keyword
         ? "'" + keyword + "' 검색 결과 " + count + "개 작품"
-        : (showAllGenres ? "전체 장르" : "내 장르") + " 작품 " + count + "개";
+        : (currentGenreFilter !== "all"
+            ? document.querySelector('[data-genre-filter="' + currentGenreFilter + '"]').textContent
+            : "전체 장르") + " 작품 " + count + "개";
 
     return count;
 }
@@ -551,7 +620,12 @@ function showFavoriteMessage(text, state) {
 }
 
 function resetCollection() {
-    showAllGenres = false;
+    currentGenreFilter = "all";
+    genreFilterButtons.forEach((button) => {
+        const isSelected = button.dataset.genreFilter === "all";
+        button.classList.toggle("is-active", isSelected);
+        button.setAttribute("aria-pressed", String(isSelected));
+    });
     removeTarget = null;
     comicSearch.value = "";
     noResult.hidden = true;
@@ -563,6 +637,7 @@ function resetCollection() {
 
 // 모아보기는 항상 내 장르부터 보여 주고, 검색어와 즐겨찾기는 그대로 유지한다.
 collectionOpen.addEventListener("click", () => {
+    selectGenreFilter(getMyGenreText() ? "mine" : "all");
     showMyGenres();
     updateFavoriteSummary();
     showStep(4);
@@ -582,12 +657,20 @@ function handleComicSearch(event) {
 
     // 검색어 없이 검색하면 목록은 그대로 보여 주고, 무엇을 입력할지 안내한다.
     if (comicSearch.value.trim() === "") {
+        if (count === 0) return;
         resultMessage.textContent = "검색어가 비어 있어 작품 " + count + "개를 모두 보여 줍니다. 찾을 작품 이름을 입력해 주세요.";
         comicSearch.focus();
     }
 }
 
 comicSearchForm.addEventListener("submit", handleComicSearch);
+
+genreFilterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        selectGenreFilter(button.dataset.genreFilter);
+        updateComicList();
+    });
+});
 
 searchClear.addEventListener("click", () => {
     comicSearch.value = "";
@@ -596,8 +679,7 @@ searchClear.addEventListener("click", () => {
 });
 
 searchAll.addEventListener("click", () => {
-    showAllGenres = true;
-    updateGenreScope();
+    selectGenreFilter("all");
     updateComicList();
 });
 
