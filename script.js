@@ -1,4 +1,4 @@
-const serviceName = "만화보기";
+const serviceName = "만화책방";
 let isSubscribed = false;
 let submitCount = 0;
 
@@ -18,15 +18,18 @@ const subscribeForm = document.querySelector('#subscribe-form');
 const emailInput = document.querySelector('#email');
 const subscribeButton = document.querySelector('#subscribe-btn');
 const subscribeMessage = document.querySelector('#subscribe-msg');
+const subscribeError = document.querySelector('#subscribe-error');
 
 function handleSubscribe(event) {
     event.preventDefault();
 
     const subscriberEmail = emailInput.value.trim();
 
-    if (subscriberEmail === "") {
-        subscribeMessage.textContent =
-            "이메일을 입력한 뒤 신청해주세요.";
+    if (!emailInput.validity.valid) {
+        emailInput.setAttribute("aria-invalid", "true");
+        subscribeError.textContent = emailInput.validity.valueMissing
+            ? "오류: 이메일을 입력해 주세요."
+            : "오류: 이메일 형식을 확인해 주세요. 예: reader@example.com";
         emailInput.focus();
         return;
     }
@@ -37,8 +40,8 @@ function handleSubscribe(event) {
     subscribeMessage.textContent =
         makeSubscribeMessage(subscriberEmail, isSubscribed);
 
-        subscribeMessage.classList.add("is-success");
-
+    subscribeMessage.classList.add("is-success");
+    subscribeMessage.focus();
     subscribeButton.textContent = "신청 완료";
     subscribeButton.disabled = true;
 }
@@ -46,12 +49,15 @@ function handleSubscribe(event) {
 subscribeForm.addEventListener("submit", handleSubscribe);
 
 function handleEmailInput() {
+    emailInput.removeAttribute("aria-invalid");
+    subscribeError.textContent = "";
+
     if (!isSubscribed) {
         return;
     }
 
     isSubscribed = false;
-    subscribeMessage.textContent = "이메일을 입력한 뒤 신청해주세요.";
+    subscribeMessage.textContent = "";
     subscribeMessage.classList.remove("is-success");
     subscribeButton.textContent = "만화 소식 신청하기";
     subscribeButton.disabled = false;
@@ -69,8 +75,6 @@ const startButton = document.querySelector("#start-btn");
 function handleThemeClick() {
     const isDark = document.body.classList.toggle("dark");
     themeButton.setAttribute("aria-pressed", String(isDark));
-    
-    themeButton.textContent = isDark ? "라이트 테마로 바꾸기" : "다크 테마로 바꾸기";
 }
 
 themeButton.addEventListener("click", handleThemeClick);
@@ -81,9 +85,9 @@ function updateCurrentNav() {
     const currentHash = window.location.hash;
 
     navLinks.forEach((link, index) => {
-        const isCurrent = currentHash
-            ? link.getAttribute("href") === currentHash
-            : index === 0;
+        const isCurrent = !currentHash || currentHash === "#top"
+            ? index === 0
+            : link.getAttribute("href") === currentHash;
 
         link.classList.toggle("is-current", isCurrent);
 
@@ -93,6 +97,10 @@ function updateCurrentNav() {
             link.removeAttribute("aria-current");
         }
     });
+
+    const currentLink = document.querySelector('.main-nav a[aria-current="page"]');
+    const pageName = currentLink ? currentLink.textContent.trim() : "홈";
+    document.title = pageName + " | " + serviceName;
 }
 
 window.addEventListener("hashchange", updateCurrentNav);
@@ -101,32 +109,45 @@ updateCurrentNav();
 const menuToggle = document.querySelector("#menu-toggle");
 const mainNav = document.querySelector("#main-nav");
 
-menuToggle.addEventListener("click", () => {
-    const isOpen = mainNav.classList.toggle("is-open");
+const mobileLayout = window.matchMedia("(max-width: 768px)");
+
+function setMenuOpen(isOpen) {
+    mainNav.classList.toggle("is-open", isOpen);
     menuToggle.setAttribute("aria-expanded", String(isOpen));
     menuToggle.textContent = isOpen ? "메뉴 닫기" : "메뉴 열기";
+}
+
+menuToggle.addEventListener("click", () => {
+    setMenuOpen(!mainNav.classList.contains("is-open"));
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !mainNav.classList.contains("is-open")) return;
+    if (event.target.closest("dialog[open]")) return;
+
+    setMenuOpen(false);
+    menuToggle.focus();
 });
 
 navLinks.forEach((link) => {
     link.addEventListener("click", () => {
-        mainNav.classList.remove("is-open");
-        menuToggle.textContent = "메뉴 열기";
-        menuToggle.setAttribute("aria-expanded", "false");
+        const section = document.querySelector(link.hash);
+        section.focus({ preventScroll: true });
+        setMenuOpen(false);
     });
 });
 
-window.addEventListener("resize", () => {
-    if (window.innerWidth > 768) {
-        mainNav.classList.remove("is-open");
-        menuToggle.textContent = "메뉴 열기";
-        menuToggle.setAttribute("aria-expanded", "false");
+mobileLayout.addEventListener("change", () => {
+    if (mobileLayout.matches && mainNav.contains(document.activeElement)) {
+        menuToggle.focus();
     }
+    setMenuOpen(false);
 });
 
 function handleNicknameInput() {
     const maxLength = nicknameInput.maxLength;
     const currentLength = Math.min(nicknameInput.value.length, maxLength);
-    nicknameCount.textContent = currentLength + " / " + maxLength;
+    nicknameCount.textContent = currentLength + " / " + maxLength + "자";
 }
 
 nicknameInput.addEventListener("input", handleNicknameInput);
@@ -148,13 +169,15 @@ function handleAgreeChange() {
 
 agreeCheck.addEventListener("change", handleAgreeChange);
 
-const tabs = document.querySelectorAll(".tab");
+const tabList = document.querySelector(".tabs");
+const tabs = [...tabList.querySelectorAll(".tab")];
 const panels = document.querySelectorAll(".panel");
 
 function resetTabsAndPanels() {
     tabs.forEach((tab) => {
         tab.classList.remove("is-active");
         tab.setAttribute("aria-selected", "false");
+        tab.tabIndex = -1;
     });
 
     panels.forEach((panel) => {
@@ -169,6 +192,7 @@ function activateTab(clickedTab) {
 
     clickedTab.classList.add("is-active");
     clickedTab.setAttribute("aria-selected", "true");
+    clickedTab.tabIndex = 0;
 
     targetPanel.classList.add("is-active");
     targetPanel.hidden = false;
@@ -181,6 +205,32 @@ function handleTabClick(event) {
 
 tabs.forEach((tab) => {
     tab.addEventListener("click", handleTabClick);
+});
+
+function updateTabOrientation() {
+    tabList.setAttribute("aria-orientation", mobileLayout.matches ? "vertical" : "horizontal");
+}
+
+mobileLayout.addEventListener("change", updateTabOrientation);
+updateTabOrientation();
+
+tabList.addEventListener("keydown", (event) => {
+    const index = tabs.indexOf(event.target);
+    const vertical = mobileLayout.matches;
+    const previousKey = vertical ? "ArrowUp" : "ArrowLeft";
+    const nextKey = vertical ? "ArrowDown" : "ArrowRight";
+    let nextIndex;
+
+    if (event.key === previousKey) nextIndex = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === nextKey) nextIndex = (index + 1) % tabs.length;
+    else if (event.key === "Home") nextIndex = 0;
+    else if (event.key === "End") nextIndex = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    resetTabsAndPanels();
+    activateTab(tabs[nextIndex]);
+    tabs[nextIndex].focus();
 });
 
 const readingFlow = document.querySelector("#reading-flow");
@@ -207,6 +257,7 @@ const summaryGenre = document.querySelector("#summary-genre");
 const summaryPrev = document.querySelector("#summary-prev");
 const finishButton = document.querySelector("#finish-button");
 const submitStatus = document.querySelector("#submit-status");
+const saveActions = document.querySelector("#save-actions");
 let isSubmitting = false;
 const restartButton = document.querySelector("#restart-button");
 const formData = {
@@ -216,14 +267,20 @@ const formData = {
     genreCount: "0"
 };
 
-function showStep(index) {
+function showStep(index, focusTarget = flowSteps[index].querySelector("h3")) {
     flowSteps.forEach((step, i) => {
         step.hidden = i !== index;
     });
 
     progressItems.forEach((item, i) => {
-        item.classList.toggle("is-active", i === index);
+        const isCurrent = i === index;
+        item.classList.toggle("is-active", isCurrent);
+
+        if (isCurrent) item.setAttribute("aria-current", "step");
+        else item.removeAttribute("aria-current");
     });
+
+    focusTarget.focus();
 }
 
 const readingDialog = document.querySelector("#reading-dialog");
@@ -247,15 +304,17 @@ readingCancel.addEventListener("click", () => {
     revokeReadingAgreement();
 });
 
-readingDialog.addEventListener("cancel", revokeReadingAgreement);
+readingDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    readingDialog.close();
+    revokeReadingAgreement();
+});
 
 readingConfirm.addEventListener("click", () => {
     if (!agreeCheck.checked) return;
     readingDialog.close();
     readingFlow.hidden = false;
-    showStep(0);
-    readingFlow.scrollIntoView({ behavior: "smooth" });
-    titleInput.focus();
+    showStep(0, titleInput);
 });
 
 function updateTitleExperience() {
@@ -277,7 +336,7 @@ function validateTitle() {
     const title = titleInput.value.trim();
 
     if (!title) {
-        titleError.textContent = "만화 제목을 입력해 주세요.";
+        titleError.textContent = "오류: 만화 제목을 입력해 주세요.";
         titleInput.setAttribute("aria-invalid", "true");
         titleInput.classList.add("has-error");
         updateTitleExperience();
@@ -286,7 +345,7 @@ function validateTitle() {
     }
 
     if (title.length < 2) {
-        titleError.textContent = "만화 제목을 2자 이상 입력해 주세요.";
+        titleError.textContent = "오류: 만화 제목을 2자 이상 입력해 주세요.";
         titleInput.setAttribute("aria-invalid", "true");
         titleInput.classList.add("has-error");
         updateTitleExperience();
@@ -319,12 +378,12 @@ titleNext.addEventListener("click", () => {
 
 chapterRange.addEventListener("input", () => {
     chapterValue.value = chapterRange.value + "화";
+    chapterRange.setAttribute("aria-valuetext", chapterValue.value);
 });
 
 function syncGenreFields() {
     const open = bookmarkOption.checked;
 
-    bookmarkOption.setAttribute("aria-expanded", String(open));
     genreOptions.hidden = !open;
     genreInputs.forEach((input) => {
         input.disabled = !open;
@@ -356,8 +415,7 @@ summaryPrev.addEventListener("click", () => showStep(1));
 // 9주차: 완료 버튼의 중복 실행을 막고 저장 상태를 보여 줍니다.
 function setSubmitState(state, message) {
     isSubmitting = state === "loading";
-    readingForm.setAttribute("aria-busy", String(isSubmitting));
-    readingFlow.setAttribute("aria-busy", String(isSubmitting));
+    saveActions.setAttribute("aria-busy", String(isSubmitting));
     summaryPrev.disabled = isSubmitting;
     finishButton.disabled = isSubmitting;
     finishButton.textContent = isSubmitting ? "설정을 저장하는 중…" : "설정 완료하기";
@@ -409,8 +467,7 @@ readingForm.addEventListener("submit", (event) => {
     if (currentStep !== 2) return;
 
     if (!validateTitle()) {
-        showStep(0);
-        titleInput.focus();
+        showStep(0, titleInput);
         return;
     }
 
@@ -427,6 +484,13 @@ readingForm.addEventListener("submit", (event) => {
             setSubmitState("error", "저장하지 못했습니다. 입력 내용은 그대로 두었습니다. 다시 시도해 주세요.");
             finishButton.focus();
             return;
+        }
+
+        // 책갈피를 끈 설정이 저장되면 이전에 고른 장르도 지웁니다.
+        if (!formData.bookmark) {
+            genreInputs.forEach((input) => {
+                input.checked = false;
+            });
         }
 
         setSubmitState("success", "만화 보기 설정 저장이 완료되었습니다.");
@@ -452,6 +516,7 @@ restartButton.addEventListener("click", () => {
 
     chapterRange.value = "3";
     chapterValue.value = "3화";
+    chapterRange.setAttribute("aria-valuetext", chapterValue.value);
     bookmarkOption.checked = false;
     genreOptions.querySelectorAll("input").forEach((input) => {
         input.checked = false;
@@ -465,7 +530,7 @@ restartButton.addEventListener("click", () => {
 
     resetCollection();
 
-    showStep(0);
+    showStep(0, titleInput);
 });
 
 
@@ -479,11 +544,11 @@ const comicSearchForm = document.querySelector("#comic-search-form");
 const comicSearch = document.querySelector("#comic-search");
 const resultMessage = document.querySelector("#result-msg");
 const noResult = document.querySelector("#no-result");
-const noResultMessage = document.querySelector("#no-result-msg");
 const searchClear = document.querySelector("#search-clear");
 const searchAll = document.querySelector("#search-all");
 const comicCards = document.querySelectorAll(".comic-card");
 const genreFilterButtons = document.querySelectorAll(".genre-filter");
+const allGenresButton = document.querySelector('[data-genre-filter="all"]');
 let currentGenreFilter = "all";
 const favoriteButtons = document.querySelectorAll(".favorite-btn");
 const favoriteCount = document.querySelector("#favorite-count");
@@ -559,22 +624,21 @@ function updateComicList() {
         }
     });
 
-    noResult.hidden = count > 0;
+    noResult.hidden = count > 0 || cards.length === 0;
+    resultMessage.classList.toggle("is-empty", count === 0);
 
     if (count === 0) {
-        resultMessage.textContent = "현재 표시 중인 작품 0개";
         const selectedFilter = currentGenreFilter !== "all"
             ? document.querySelector('[data-genre-filter="' + currentGenreFilter + '"]').textContent
             : "전체 장르";
         if (cards.length === 0) {
-            noResultMessage.textContent = "아직 등록된 만화가 없습니다. 만화가 추가되면 이곳에서 확인할 수 있습니다.";
+            resultMessage.textContent = "아직 등록된 만화가 없습니다. 만화가 추가되면 이곳에서 확인할 수 있습니다.";
         } else {
-            noResultMessage.textContent = keyword
+            resultMessage.textContent = keyword
                 ? selectedFilter + "에서 '" + keyword + "'에 맞는 만화가 없습니다. 검색어나 필터를 바꿔 보세요."
                 : selectedFilter + "에 표시할 만화가 없습니다. 다른 장르를 선택해 보세요.";
         }
         searchAll.hidden = currentGenreFilter === "all" || cards.length === 0;
-        searchClear.hidden = cards.length === 0;
         return 0;
     }
 
@@ -609,7 +673,7 @@ function setFavorite(card, isFavorite) {
 
     card.classList.toggle("is-favorite", isFavorite);
     button.textContent = isFavorite ? "즐겨찾기 빼기" : "즐겨찾기 담기";
-    button.setAttribute("aria-pressed", String(isFavorite));
+    button.setAttribute("aria-label", button.textContent + ": " + card.dataset.title);
     updateFavoriteSummary();
 }
 
@@ -641,13 +705,11 @@ collectionOpen.addEventListener("click", () => {
     showMyGenres();
     updateFavoriteSummary();
     showStep(4);
-    comicSearch.focus();
 });
 
 // 값은 그대로 둔 채 7주차 2단계(읽기 조건)로 돌아가 장르를 고르게 한다.
 genrePickButton.addEventListener("click", () => {
-    showStep(1);
-    bookmarkOption.focus();
+    showStep(1, bookmarkOption);
 });
 
 function handleComicSearch(event) {
@@ -679,8 +741,8 @@ searchClear.addEventListener("click", () => {
 });
 
 searchAll.addEventListener("click", () => {
-    selectGenreFilter("all");
-    updateComicList();
+    allGenresButton.click();
+    allGenresButton.focus();
 });
 
 function handleFavoriteClick(event) {
@@ -695,7 +757,7 @@ function handleFavoriteClick(event) {
     }
 
     if (updateFavoriteSummary() >= maxFavorites) {
-        showFavoriteMessage("즐겨찾기는 최대 " + maxFavorites + "개까지 담을 수 있습니다. 다른 작품을 빼고 다시 담아 주세요.", "warning");
+        showFavoriteMessage("오류: 즐겨찾기는 최대 " + maxFavorites + "개까지 담을 수 있습니다. 다른 작품을 빼고 다시 담아 주세요.", "warning");
         return;
     }
 
@@ -707,11 +769,17 @@ favoriteButtons.forEach((button) => {
     button.addEventListener("click", handleFavoriteClick);
 });
 
+function focusAfterFavoriteChange(card) {
+    const button = card.querySelector(".favorite-btn");
+    const selectedFilter = document.querySelector('.genre-filter[aria-pressed="true"]');
+    (card.hidden ? selectedFilter : button).focus();
+}
+
 function keepFavorite() {
     if (!removeTarget) return;
 
     showFavoriteMessage("'" + removeTarget.dataset.title + "'을(를) 즐겨찾기에 그대로 두었습니다.", "");
-    removeTarget.querySelector(".favorite-btn").focus();
+    focusAfterFavoriteChange(removeTarget);
     removeTarget = null;
 }
 
@@ -720,13 +788,17 @@ removeCancel.addEventListener("click", () => {
     keepFavorite();
 });
 
-removeDialog.addEventListener("cancel", keepFavorite);
+removeDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    removeDialog.close();
+    keepFavorite();
+});
 
 removeConfirm.addEventListener("click", () => {
     removeDialog.close();
     setFavorite(removeTarget, false);
     showFavoriteMessage("'" + removeTarget.dataset.title + "'을(를) 즐겨찾기에서 뺐습니다.", "");
-    removeTarget.querySelector(".favorite-btn").focus();
+    focusAfterFavoriteChange(removeTarget);
     removeTarget = null;
 });
 
@@ -736,6 +808,5 @@ collectionBack.addEventListener("click", () => {
     completeMessage.textContent = count > 0
         ? "즐겨찾기에 " + count + "개 작품을 담았습니다. 더 둘러보거나 다시 설정할 수 있습니다."
         : "아직 즐겨찾기에 담은 작품이 없습니다. 내 장르 만화를 다시 둘러볼 수 있습니다.";
-    showStep(3);
-    collectionOpen.focus();
+    showStep(3, collectionOpen);
 });

@@ -1,6 +1,7 @@
 :root {
-    --blue: #635bff;
+    --blue: #4b43c9;
     --muted: #5b5870;
+    --focus: #4338b5;
     --lavender: #eeedff;
     --header-surface: #ffffff;
     --header-line: #e3e2ec;
@@ -106,8 +107,9 @@ header.site-header {
 }
 
 body.dark {
-    --blue: #aaa4ff;
-    --muted: #d8b8e2;
+    --blue: #d0c9ff;
+    --focus: #e1d9ff;
+    --muted: #e3caeb;
     --lavender: #39364f;
     --header-surface: #292a34;
     --header-line: #454653;
@@ -157,7 +159,7 @@ h1 {
 }
 
 h2 {
-    color: #635bff;
+    color: var(--blue);
     font-size: 35px;
     font-weight: 800;
     line-height: 1.3;
@@ -220,7 +222,7 @@ input {
     flex: 1;
     min-width: 0;
     padding: 12px 18px;
-    border: 1px solid #b8b7c5;
+    border: 1px solid #767384;
     border-radius: 10px;
 }
 
@@ -229,9 +231,9 @@ button {
     border: 0;
     border-radius: 10px;
     color: #ffffff;
-    background-color: #635bff;
+    background-color: #4b43c9;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 input,
@@ -243,19 +245,58 @@ button:hover {
     background-color: #4b43db;
 }
 
-button:focus,
-input:focus {
-    outline: 3px solid #b9b5ff;
-    outline-offset: 2px;
+:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+}
+
+body.dark :focus-visible {
+    box-shadow: 0 0 0 2px #292a31;
+}
+
+/* 키보드로 초점을 옮겼을 때만 본문 바로가기 링크를 보여 줍니다. */
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+    padding: 10px 14px;
+    border: 2px solid var(--blue);
+    border-radius: 8px;
+    background-color: var(--menu-surface);
+    color: var(--menu-ink);
+    transform: translateY(-160%);
+}
+
+.skip-link:focus-visible {
+    transform: translateY(0);
 }
 
 button:active {
     transform: translateY(1px);
 }
 
+#subscribe-help {
+    margin: 16px 0 0;
+}
+
+#subscribe-error {
+    margin: 8px 0 0;
+    color: var(--form-danger);
+    font-weight: 700;
+}
+
 #subscribe-msg {
-    margin-top: 16px;
-    color: #555763;
+    margin: 8px 0 0;
+}
+
+#subscribe-error:empty,
+#subscribe-msg:empty {
+    margin: 0;
+}
+
+#email[aria-invalid="true"] {
+    border: 2px solid #9d243d;
 }
 
 #subscribe-msg.is-success {
@@ -267,8 +308,8 @@ button:active {
 }
 
 #subscribe-btn:disabled {
-    color: #ffffff;
-    background-color: #a8a8b2;
+    color: #292a31;
+    background-color: #d6d5de;
     cursor: not-allowed;
 }
 
@@ -307,8 +348,8 @@ button:active {
 }
 
 #start-btn:disabled {
-    color: #ffffff;
-    background-color: #a8a8b2;
+    color: #292a31;
+    background-color: #d6d5de;
     cursor: not-allowed;
 }
 
@@ -330,7 +371,7 @@ body.dark {
 
 body.dark p,
 body.dark nav a {
-    color: #d8b8e2;
+    color: var(--muted);
 }
 
 body.dark .feature-card,
@@ -361,7 +402,7 @@ body.dark .subscribe-card {
 .tab.is-active {
     color: #634bff;
     background-color: #ffffff;
-    border-color: #635bff;
+    border-color: #4b43c9;
     border-bottom: 4px solid currentColor;
     font-weight: 700;
 }
@@ -427,10 +468,16 @@ body.dark #remove-dialog {
 .reading-flow .step[hidden],
 .reading-flow fieldset[hidden] {display: none;}
 
-.reading-flow .progress {display: flex; flex-wrap: wrap; gap: 12px;}
+.reading-flow .progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-left: 0;
+    list-style: none;
+}
 
 .reading-flow .progress__item.is-active {
-    color: #635bff;
+    color: var(--blue);
     font-weight: 800;
 }
 
@@ -444,14 +491,14 @@ body.dark #remove-dialog {
 
 .reading-flow #chapter-range {
     width: 100%;
-    accent-color: #635bff;
+    accent-color: #4b43c9;
 }
 
 .reading-flow input[type="checkbox"],
 .reading-flow input[type="radio"] {
     flex: 0 0 auto;
     width: auto;
-    accent-color: #635bff;
+    accent-color: #4b43c9;
 }
 
 .reading-flow .summary-list > div {
@@ -522,7 +569,7 @@ body.dark .reading-flow {
 .genre-filter {
     min-height: 42px;
     padding: 8px 14px;
-    border: 1px solid #d8d7e2;
+    border: 1px solid #767384;
     border-radius: 10px;
     background: #fff;
     color: #292a31;
@@ -531,9 +578,13 @@ body.dark .reading-flow {
     cursor: pointer;
 }
 
+.genre-filter:hover {
+    background-color: #eeedff;
+}
+
 .genre-filter.is-active {
-    border-color: #635bff;
-    background: #635bff;
+    border-color: #4b43c9;
+    background: #4b43c9;
     color: #fff;
 }
 
@@ -544,10 +595,8 @@ body.dark .reading-flow {
     background-color: #fdf0f2;
 }
 
-.no-result p {
-    margin-top: 0;
-    color: #9d243d;
-    font-weight: 700;
+.result-msg.is-empty {
+    color: var(--form-danger);
 }
 
 .no-result .step-actions {margin-top: 0;}
@@ -583,7 +632,7 @@ body.dark .reading-flow {
     align-self: flex-start;
     padding: 2px 10px;
     border-radius: 999px;
-    color: #635bff;
+    color: #4b43c9;
     background-color: #ffffff;
     font-size: 14px;
     font-weight: 700;
@@ -593,14 +642,14 @@ body.dark .reading-flow {
 
 /* 즐겨찾기에 담긴 카드는 테두리와 버튼 색으로 상태를 보여 줍니다. */
 .comic-card.is-favorite {
-    border: 2px solid #635bff;
+    border: 2px solid #4b43c9;
     background-color: #ecebff;
 }
 
 .comic-card.is-favorite .favorite-btn {
-    color: #635bff;
+    color: #4b43c9;
     background-color: #ffffff;
-    border: 1px solid #635bff;
+    border: 1px solid #4b43c9;
 }
 
 .comic-card.is-favorite .favorite-btn:hover {
@@ -620,7 +669,7 @@ body.dark .reading-flow {
     font-size: 18px;
 }
 
-#favorite-count {color: #635bff;}
+#favorite-count {color: var(--blue);}
 
 #favorite-msg {
     min-height: 24px;
@@ -652,7 +701,6 @@ body.dark .comic-card.is-favorite {border-color: #b9b5ff;}
 body.dark .comic-genre {background-color: #50515f; color: #ffffff;}
 body.dark .favorite-box {border-color: #2d2e38;}
 body.dark .no-result {background-color: #2d2e38;}
-body.dark .no-result p {color: #ffb3c0;}
 body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
 
 /* 웹페이지가 표시되는 가로 폭이 768px 이하일 때만 적용 */
@@ -715,13 +763,12 @@ body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
     }
 
     .theme-button {
-        order: 2;
+        width: auto;
         padding: 8px 12px;
     }
 
     .site-header .main-nav {
         display: none;
-        order: 3;
         width: 100%;
         margin-left: 0;
     }
@@ -779,25 +826,6 @@ body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
         min-height: 48px;
     }
 
-    #subscribe-msg {
-        margin-top: 16px;
-        color: #555763;
-    }
-
-    #subscribe-msg.is-success {
-        color: #245c3a;
-        background-color: #e7f7ed;
-        padding: 12px;
-        border-radius: 10px;
-        font-weight: 700;
-    }
-
-    #subscribe-btn:disabled {
-        color: #ffffff;
-        background-color: #a8a8b2;
-        cursor: not-allowed;
-    }
-
     .tabs {
         flex-direction: column;
         align-items: stretch;
@@ -810,10 +838,10 @@ body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
 
     .reading-flow {padding: 20px;}
     #reading-dialog .dialog-actions,
-    #remove-dialog .dialog-actions {flex-direction: column-reverse;}
+    #remove-dialog .dialog-actions {flex-direction: column;}
     #reading-dialog .dialog-actions button,
     #remove-dialog .dialog-actions button {width: 100%;}
-    .reading-flow .step-actions {flex-direction: column-reverse;}
+    .reading-flow .step-actions {flex-direction: column;}
     .reading-flow .step-actions button {width: 100%;}
     .reading-flow input[type="checkbox"],
     .reading-flow input[type="radio"] {width: auto;}
@@ -836,7 +864,7 @@ body.dark #genre-scope-msg.is-notice {color: #7a4b00;}
 }
 
 body.dark {
-    --form-danger: #ff9baa;
+    --form-danger: #ffc0ca;
     --form-success: #76dbaa;
     --form-success-bg: #1c331c;
     --form-muted: #b4bfd4;
@@ -860,13 +888,8 @@ body.dark {
     width: 100%;
     min-height: 50px;
     padding: 12px 15px;
-    border: 1px solid #b8b7c5;
+    border: 1px solid #767384;
     border-radius: 10px;
-}
-
-.reading-flow #title-field input[type="text"]:focus {
-    outline: 3px solid #b9b5ff;
-    outline-offset: 2px;
 }
 
 .reading-flow .field-meta {
@@ -1012,4 +1035,38 @@ body.dark .reading-flow .submit-status.is-success {
 
 body.dark .reading-flow .submit-status.has-error {
     color: var(--form-danger);
+}
+
+/* 11주차: 메뉴와 필터의 선택 상태를 굵기와 밑줄로 표시합니다. */
+.main-nav a[aria-current="page"],
+.genre-filter[aria-pressed="true"],
+.theme-button[aria-pressed="true"],
+.tab[aria-selected="true"],
+.progress__item[aria-current="step"] {
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+}
+
+body.dark #subscribe-msg.is-success,
+body.dark #agree-msg.is-ready,
+body.dark #favorite-msg.is-success {
+    color: #245c3a;
+}
+
+body.dark #agree-msg {
+    color: #292a31;
+}
+
+body.dark #favorite-msg.is-warning {
+    color: #9d243d;
+}
+
+body.dark .reading-flow #title-field.is-valid input[type="text"] {
+    color: #f4f4f8;
+    color-scheme: dark;
+}
+
+body.dark .reading-flow #title-field input[type="text"][aria-invalid="true"] {
+    border-color: #9d243d;
 }
